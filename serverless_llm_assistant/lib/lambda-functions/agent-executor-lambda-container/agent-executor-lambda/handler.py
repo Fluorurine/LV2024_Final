@@ -12,6 +12,9 @@ from assistant.config import AgenticAssistantConfig
 from assistant.prompts import CLAUDE_PROMPT
 from assistant.utils import parse_markdown_content
 ## placeholder for lab 3, step 4.2, replace this with imports as instructed
+from langchain.agents import AgentExecutor, create_xml_agent
+from assistant.prompts import CLAUDE_AGENT_PROMPT
+from assistant.tools import LLM_AGENT_TOOLS
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -25,7 +28,7 @@ claude_llm = BedrockLLM(
     model_id=config.llm_model_id,
     client=bedrock_runtime,
     model_kwargs={
-        "max_tokens_to_sample": 1000,
+        "max_tokens": 1000,
         "temperature": 0.0,
         "top_p": 0.99
     },
@@ -34,7 +37,7 @@ claude_llm = BedrockLLM(
 claude_chat_llm = ChatBedrock(
     # model_id=config.llm_model_id,
     # transitioning to claude 3 with messages API
-    model_id="anthropic.claude-3-haiku-20240307-v1:0",
+    model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
     client=bedrock_runtime,
     model_kwargs={
         "max_tokens": 1000,
@@ -71,7 +74,40 @@ def get_basic_chatbot_conversation_chain(
 
 
 ## placeholder for lab 3, step 4.3, replace this with the get_agentic_chatbot_conversation_chain helper.
+def get_agentic_chatbot_conversation_chain(
+    user_input, session_id, clean_history, verbose=True
+):
+    message_history = DynamoDBChatMessageHistory(
+        table_name=config.chat_message_history_table_name, session_id=session_id
+    )
+    if clean_history:
+        message_history.clear()
 
+    memory = ConversationBufferMemory(
+        memory_key="chat_history",
+        # Change the human_prefix from Human to something else
+        # to not conflict with Human keyword in Anthropic Claude model.
+        human_prefix="Hu",
+        chat_memory=message_history,
+        return_messages=False,
+    )
+
+    agent = create_xml_agent(
+        claude_chat_llm,
+        LLM_AGENT_TOOLS,
+        CLAUDE_AGENT_PROMPT,
+        stop_sequence=["</tool_input>", "</final_answer>"]
+    )
+
+    agent_chain = AgentExecutor(
+        agent=agent,
+        tools=LLM_AGENT_TOOLS,
+        return_intermediate_steps=False,
+        verbose=verbose,
+        memory=memory,
+        handle_parsing_errors="Check your output and make sure it conforms!"
+    )
+    return agent_chain
 
 def lambda_handler(event, context):
     logger.info(event)
@@ -84,15 +120,11 @@ def lambda_handler(event, context):
     if chatbot_type == "basic":
         conversation_chain = get_basic_chatbot_conversation_chain(
             user_input, session_id, clean_history
-        ).predict
+        ).invoke
     elif chatbot_type == "agentic":
-        return {
-            "statusCode": 200,
-            "response": (
-                f"The agentic mode is not supported yet. Extend the code as instructed"
-                " in lab 3 to add it."
-            ),
-        }
+        conversation_chain = get_agentic_chatbot_conversation_chain(
+            user_input, session_id, clean_history
+        ).invoke
     else:
         return {
             "statusCode": 200,
@@ -103,11 +135,18 @@ def lambda_handler(event, context):
         }
 
     try:
-        response = conversation_chain(input=user_input)
-        response = parse_markdown_content(response)
+        response = conversation_chain({"input": user_input})
+
+        if chatbot_type == "basic":
+            response = response["response"]
+            response = parse_markdown_content(response)
+        elif chatbot_type == "agentic":
+            response = response["output"]
+
     except Exception:
         response = (
-            "Unable to respond due to an internal issue." " Please try again later"
+            "Unable to respond due to an internal issue."
+            " Please try again later"
         )
         print(traceback.format_exc())
 

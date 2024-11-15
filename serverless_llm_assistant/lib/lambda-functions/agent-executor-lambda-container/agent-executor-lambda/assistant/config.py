@@ -42,7 +42,7 @@ class AgenticAssistantConfig:
         )
 
         collection_name: str = "agentic_assistant_vector_store"
-        embedding_model_id: str = "amazon.titan-embed-text-v1"
+        embedding_model_id: str = "amazon.titan-embed-text-v2:0"
 
         sqlalchemy_connection_url: str = sqlalchemy.URL.create(
             "postgresql+psycopg2",

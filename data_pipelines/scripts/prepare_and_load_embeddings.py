@@ -163,7 +163,7 @@ if __name__ == "__main__":
     token_split_chunk_size = 512
     token_chunk_overlap = 64
     # Define an embedding model to generate embeddings
-    embedding_model_id = "amazon.titan-embed-text-v1"
+    embedding_model_id = "amazon.titan-embed-text-v2:0"
     COLLECTION_NAME = 'agentic_assistant_vector_store'
     # make this an argument.
     pre_delete_collection = True
