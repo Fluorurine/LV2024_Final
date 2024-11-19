@@ -31,7 +31,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// -----------------------------------------------------------------------
 		// Create relevant SSM parameters
 		const parameters = this.node.tryGetContext("parameters") || {
-			bedrock_region: "us-west-1",
+			bedrock_region: "us-east-1",
 			llm_model_id: "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
 		};
 
