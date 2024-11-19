@@ -93,16 +93,16 @@ def get_agentic_chatbot_conversation_chain(
     )
 
     agent = create_xml_agent(
-        claude_chat_llm,
-        LLM_AGENT_TOOLS,
-        CLAUDE_AGENT_PROMPT,
+        llm=claude_chat_llm,
+        tools=LLM_AGENT_TOOLS,
+        prompt=CLAUDE_AGENT_PROMPT,
         stop_sequence=["</tool_input>", "</final_answer>"]
     )
 
     agent_chain = AgentExecutor(
         agent=agent,
         tools=LLM_AGENT_TOOLS,
-        return_intermediate_steps=False,
+        return_intermediate_steps=True,
         verbose=verbose,
         memory=memory,
         handle_parsing_errors="Check your output and make sure it conforms!"

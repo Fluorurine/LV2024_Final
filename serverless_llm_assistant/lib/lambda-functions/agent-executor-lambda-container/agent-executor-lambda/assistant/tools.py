@@ -49,33 +49,35 @@ text_to_sql_chain = get_text_to_sql_chain(config, claude_llm)
 #             "The input to this tool should be a valid mathematical expression, such as '55/3' or '(10 + 20) * 5'."
 #         ),
 #     ),
-LLM_AGENT_TOOLS = [
-    Tool(
-        name="WebSearch",
-        func=search.invoke,
-        description=(
-            "Use this tool to search for information on current events, news, or general knowledge topics. "
-            "For example, you can use this tool to find information about recent news events, famous people, or common facts."
-        ),
-    ),
-    Tool(
-        name="CompanyFinancialSemanticSearch",
-        func=lambda query: rag_qa_chain({"question": query}),
-        description=(
-            "Use this tool to search for information in companies' financial reports and documents. "
-            "For example, you can use this tool to find the revenue, net income, or other financial figures for a specific company in a given year. "
-            "The input should be a natural language question related to company financials."
-        ),
-    ),    
-    Tool(
-        name="AnalyticsQA",
-        func=lambda question: get_sql_qa_tool(question, text_to_sql_chain),
-        description=(
-            "Use this tool to perform analytical queries and calculations on financial data."
-            " This tool is suitable for questions that require aggregating, filtering, or performing operations on financial data across multiple years or dimensions."
-            " For example, you can use this tool to calculate the maximum revenue, average net income, or percentage change in revenue over a period of time, "
-            " or to find years or companies that meet certain financial criteria. "
-            "The input should be a natural language question related to analyzing or manipulating financial data."
-        ),
-    )
-]
+# LLM_AGENT_TOOLS = [
+#     Tool(
+#         name="WebSearch",
+#         func=search.invoke,
+#         description=(
+#             "Use this tool to search for information on current events, news, or general knowledge topics. "
+#             "For example, you can use this tool to find information about recent news events, famous people, or common facts."
+#         ),
+#     ),
+#     Tool(
+#         name="CompanyFinancialSemanticSearch",
+#         func=lambda query: rag_qa_chain({"question": query}),
+#         description=(
+#             "Use this tool to search for information in companies' financial reports and documents. "
+#             "For example, you can use this tool to find the revenue, net income, or other financial figures for a specific company in a given year. "
+#             "The input should be a natural language question related to company financials."
+#         ),
+#     ),    
+#     Tool(
+#         name="AnalyticsQA",
+#         func=lambda question: get_sql_qa_tool(question, text_to_sql_chain),
+#         description=(
+#             "Use this tool to perform analytical queries and calculations on financial data."
+#             " This tool is suitable for questions that require aggregating, filtering, or performing operations on financial data across multiple years or dimensions."
+#             " For example, you can use this tool to calculate the maximum revenue, average net income, or percentage change in revenue over a period of time, "
+#             " or to find years or companies that meet certain financial criteria. "
+#             "The input should be a natural language question related to analyzing or manipulating financial data."
+#         ),
+#     )
+# ]
+
+LLM_AGENT_TOOLS = []
