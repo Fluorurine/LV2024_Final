@@ -24,7 +24,7 @@ config = AgenticAssistantConfig()
 
 bedrock_runtime = boto3.client("bedrock-runtime", region_name=config.bedrock_region)
 
-claude_llm = BedrockLLM(
+claude_llm = ChatBedrock(
     model_id=config.llm_model_id,
     client=bedrock_runtime,
     model_kwargs={
@@ -37,7 +37,7 @@ claude_llm = BedrockLLM(
 claude_chat_llm = ChatBedrock(
     # model_id=config.llm_model_id,
     # transitioning to claude 3 with messages API
-    model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
+    model_id="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
     client=bedrock_runtime,
     model_kwargs={
         "max_tokens": 1000,

@@ -32,7 +32,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// Create relevant SSM parameters
 		const parameters = this.node.tryGetContext("parameters") || {
 			bedrock_region: "us-west-1",
-			llm_model_id: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+			llm_model_id: "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
 		};
 
 		const BEDROCK_REGION = parameters["bedrock_region"];
@@ -169,9 +169,9 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		var currentNetworkMode = NetworkMode.DEFAULT;
 		// if you run the cdk stack in SageMaker editor, you need to pass --network sagemaker
 		// for docker build to work. The following achieve that.
-		if (process.env.SAGEMAKER_APP_TYPE) {
-			currentNetworkMode = NetworkMode.custom("sagemaker");
-		}
+		// if (process.env.SAGEMAKER_APP_TYPE) {
+		// 	currentNetworkMode = NetworkMode.custom("sagemaker");
+		// }
 
 		// Add AWS Lambda container and function to serve as the agent executor.
 		const agent_executor_lambda = new lambda.DockerImageFunction(

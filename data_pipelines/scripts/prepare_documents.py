@@ -239,7 +239,7 @@ docs_mapping = {
 }
 
 bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
-llm_model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+llm_model_id = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
 
 
 if __name__ == "__main__":
