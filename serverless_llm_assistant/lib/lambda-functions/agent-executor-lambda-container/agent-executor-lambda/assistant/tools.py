@@ -5,7 +5,7 @@ from langchain.agents import Tool
 from langchain_aws import ChatBedrock
 
 from langchain_community.tools import DuckDuckGoSearchRun
-from .calculator import CustomCalculatorTool
+# from .calculator import CustomCalculatorTool
 from .config import AgenticAssistantConfig
 from .rag import get_rag_chain
 from .sqlqa import get_sql_qa_tool, get_text_to_sql_chain
@@ -38,10 +38,17 @@ claude_chat_llm = ChatBedrock(
 )
 
 search = DuckDuckGoSearchRun()
-custom_calculator = CustomCalculatorTool()
+# custom_calculator = CustomCalculatorTool()
 rag_qa_chain = get_rag_chain(config, claude_llm, bedrock_runtime)
 text_to_sql_chain = get_text_to_sql_chain(config, claude_llm)
-
+#    Tool(
+#         name="Calculator",
+#         func=custom_calculator,
+#         description=(
+#             "Use this tool when you need to perform mathematical calculations. "
+#             "The input to this tool should be a valid mathematical expression, such as '55/3' or '(10 + 20) * 5'."
+#         ),
+#     ),
 LLM_AGENT_TOOLS = [
     Tool(
         name="WebSearch",
@@ -51,14 +58,7 @@ LLM_AGENT_TOOLS = [
             "For example, you can use this tool to find information about recent news events, famous people, or common facts."
         ),
     ),
-    Tool(
-        name="Calculator",
-        func=custom_calculator,
-        description=(
-            "Use this tool when you need to perform mathematical calculations. "
-            "The input to this tool should be a valid mathematical expression, such as '55/3' or '(10 + 20) * 5'."
-        ),
-    ),
+ 
     Tool(
         name="CompanyFinancialSemanticSearch",
         func=lambda query: rag_qa_chain({"question": query}),
