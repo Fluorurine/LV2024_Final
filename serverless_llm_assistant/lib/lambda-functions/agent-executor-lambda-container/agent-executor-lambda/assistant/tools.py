@@ -1,7 +1,7 @@
 # This module will be edited in Lab 03 to add the agent tools.
 import boto3
 from langchain.agents import Tool
-from langchain_aws import BedrockLLM
+# from langchain_aws import BedrockLLM
 from langchain_aws import ChatBedrock
 
 from langchain_community.tools import DuckDuckGoSearchRun
@@ -13,8 +13,10 @@ from .sqlqa import get_sql_qa_tool, get_text_to_sql_chain
 config = AgenticAssistantConfig()
 bedrock_runtime = boto3.client("bedrock-runtime", region_name=config.bedrock_region)
 
-claude_llm = BedrockLLM(
-    model_id=config.llm_model_id,
+claude_llm = ChatBedrock(
+    # model_id=config.llm_model_id,
+    model_id="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+
     client=bedrock_runtime,
     model_kwargs={
         "max_tokens": 1000,

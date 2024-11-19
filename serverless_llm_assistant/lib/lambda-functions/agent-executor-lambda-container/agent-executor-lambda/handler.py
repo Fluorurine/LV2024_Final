@@ -3,7 +3,7 @@ import traceback
 
 import boto3
 from langchain.chains import ConversationChain
-from langchain_aws import BedrockLLM
+# from langchain_aws import BedrockLLM
 from langchain_aws import ChatBedrock
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
