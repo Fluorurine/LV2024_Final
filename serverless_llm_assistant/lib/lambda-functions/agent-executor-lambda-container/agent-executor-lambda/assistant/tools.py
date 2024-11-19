@@ -58,7 +58,6 @@ LLM_AGENT_TOOLS = [
             "For example, you can use this tool to find information about recent news events, famous people, or common facts."
         ),
     ),
- 
     Tool(
         name="CompanyFinancialSemanticSearch",
         func=lambda query: rag_qa_chain({"question": query}),

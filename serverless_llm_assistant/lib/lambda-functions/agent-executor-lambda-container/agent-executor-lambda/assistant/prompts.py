@@ -46,7 +46,7 @@ CLAUDE_PROMPT = ChatPromptTemplate.from_messages(messages)
 # Claude 3 agent prompt construction
 # ============================================================================
 
-system_message = f"""
+system_message2 = f"""
 You are a helpful assistant. Leverage the <conversation_history> to avoid duplicating work when answering questions.
 
 Available tools:
@@ -66,7 +66,7 @@ The date today is {date_today}.
 
 """
 
-user_message = """
+user_message2 = """
 Begin!
 
 Previous conversation history:
@@ -83,9 +83,9 @@ User input message:
 """
 
 # Construct the prompt from the messages
-messages = [
-    ("system", system_message),
-    ("human", user_message),
+messages2 = [
+    ("system", system_message2),
+    ("human", user_message2),
 ]
 
-CLAUDE_AGENT_PROMPT = ChatPromptTemplate.from_messages(messages)
+CLAUDE_AGENT_PROMPT = ChatPromptTemplate.from_messages(messages2)
