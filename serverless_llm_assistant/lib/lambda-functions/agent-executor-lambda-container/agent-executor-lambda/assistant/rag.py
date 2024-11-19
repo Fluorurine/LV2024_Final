@@ -1,5 +1,5 @@
-# from langchain.chains import RetrievalQA
-from langchain_community.chains import RetrievalQA
+from langchain.chains import RetrievalQA
+# from langchain_community.chains import RetrievalQA
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_community.vectorstores import PGVector
 
