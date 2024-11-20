@@ -70,7 +70,7 @@ export class SageMakerRdsAccessConstruct extends Construct {
 
 		// Retrieve the subnet IDs from the VPC
 		const subnetIds = props.vpc.selectSubnets({
-			subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+			subnetType: ec2.SubnetType.PUBLIC,
 		}).subnetIds;
 
 		// Convert the subnet IDs to a JSON format

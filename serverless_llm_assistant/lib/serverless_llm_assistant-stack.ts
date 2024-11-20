@@ -114,7 +114,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 			vpc: vpc.vpc,
 			credentials: AgentDBSecret, // Use the generated credentials
 			vpcSubnets: {
-				subnetType: ec2.SubnetType.PRIVATE_ISOLATED, // Place the database in the private subnets
+				subnetType: ec2.SubnetType.PUBLIC, // Place the database in the private subnets
 			},
 			storageEncrypted: true, // Enable storage encryption
 			allocatedStorage: 20, // Allocate 20 GB of storage

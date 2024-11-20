@@ -24,10 +24,10 @@ export class Vpc extends Construct {
 					name: "isolated",
 					subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
 				},
-				{
-					name: "private",
-					subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-				},
+				// {
+				// 	name: "private",
+				// 	subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+				// },
 			],
 		});
 
