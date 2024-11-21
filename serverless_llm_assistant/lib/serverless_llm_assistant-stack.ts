@@ -279,6 +279,6 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 			lambdaFunction: agent_executor_lambda,
 		});
 
-		new SageMakerProcessor(this, "SagemakerProcessor");
+		// new SageMakerProcessor(this, "SagemakerProcessor");
 	}
 }
