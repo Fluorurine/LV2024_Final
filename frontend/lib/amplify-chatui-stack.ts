@@ -18,23 +18,23 @@ export class AmplifyChatuiStack extends cdk.Stack {
 		// -------------------------------------------------------------------------
 		// Load SSM parameter that stores the Lambda function name
 
-		// const cognito_user_pool_id_parameter =
-		// 	ssm.StringParameter.valueForStringParameter(
-		// 		this,
-		// 		"/AgenticLLMAssistantWorkshop/cognito_user_pool_id"
-		// 	);
+		const cognito_user_pool_id_parameter =
+			ssm.StringParameter.valueForStringParameter(
+				this,
+				"/AgenticLLMAssistantWorkshop/cognito_user_pool_id"
+			);
 
-		// const cognito_user_pool_client_id_parameter =
-		// 	ssm.StringParameter.valueForStringParameter(
-		// 		this,
-		// 		"/AgenticLLMAssistantWorkshop/cognito_user_pool_client_id"
-		// 	);
+		const cognito_user_pool_client_id_parameter =
+			ssm.StringParameter.valueForStringParameter(
+				this,
+				"/AgenticLLMAssistantWorkshop/cognito_user_pool_client_id"
+			);
 
-		// // SSM parameter holding Rest API URL
-		// const agent_api_parameter = ssm.StringParameter.valueForStringParameter(
-		// 	this,
-		// 	"/AgenticLLMAssistantWorkshop/agent_api"
-		// );
+		// SSM parameter holding Rest API URL
+		const agent_api_parameter = ssm.StringParameter.valueForStringParameter(
+			this,
+			"/AgenticLLMAssistantWorkshop/agent_api"
+		);
 
 		// -------------------------------------------------------------------------
 
@@ -84,9 +84,9 @@ export class AmplifyChatuiStack extends cdk.Stack {
 			platform: amplify.Platform.WEB_COMPUTE,
 			environmentVariables: {
 				_CUSTOM_IMAGE: "amplify:al2023",
-				// AMPLIFY_USERPOOL_ID: cognito_user_pool_id_parameter,
-				// COGNITO_USERPOOL_CLIENT_ID: cognito_user_pool_client_id_parameter,
-				// API_ENDPOINT: agent_api_parameter,
+				AMPLIFY_USERPOOL_ID: cognito_user_pool_id_parameter,
+				COGNITO_USERPOOL_CLIENT_ID: cognito_user_pool_client_id_parameter,
+				API_ENDPOINT: agent_api_parameter,
 			},
 		});
 
