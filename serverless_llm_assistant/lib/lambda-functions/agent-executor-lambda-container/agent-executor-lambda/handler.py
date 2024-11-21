@@ -37,7 +37,7 @@ claude_llm = ChatBedrock(
 claude_chat_llm = ChatBedrock(
     # model_id=config.llm_model_id,
     # transitioning to claude 3 with messages API
-    model_id="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    model_id="us.anthropic.claude-3-5-haiku-20241022-v1:0",
     client=bedrock_runtime,
     model_kwargs={
         "max_tokens": 1000,
@@ -48,7 +48,7 @@ claude_chat_llm = ChatBedrock(
 
 
 def get_basic_chatbot_conversation_chain(
-    user_input, session_id, clean_history, verbose=True
+    user_input, session_id, clean_history, verbose=False
 ):
     message_history = DynamoDBChatMessageHistory(
         table_name=config.chat_message_history_table_name, session_id=session_id
@@ -75,7 +75,7 @@ def get_basic_chatbot_conversation_chain(
 
 ## placeholder for lab 3, step 4.3, replace this with the get_agentic_chatbot_conversation_chain helper.
 def get_agentic_chatbot_conversation_chain(
-    user_input, session_id, clean_history, verbose=True
+    user_input, session_id, clean_history, verbose=False
 ):
     message_history = DynamoDBChatMessageHistory(
         table_name=config.chat_message_history_table_name, session_id=session_id
@@ -102,7 +102,7 @@ def get_agentic_chatbot_conversation_chain(
     agent_chain = AgentExecutor(
         agent=agent,
         tools=LLM_AGENT_TOOLS,
-        return_intermediate_steps=True,
+        return_intermediate_steps=False,
         verbose=verbose,
         memory=memory,
         handle_parsing_errors="Check your output and make sure it conforms!"

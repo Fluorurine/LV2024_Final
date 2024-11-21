@@ -15,7 +15,7 @@ bedrock_runtime = boto3.client("bedrock-runtime", region_name=config.bedrock_reg
 
 claude_llm = ChatBedrock(
     # model_id=config.llm_model_id,
-    model_id="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    model_id="us.anthropic.claude-3-5-haiku-20241022-v1:0",
 
     client=bedrock_runtime,
     model_kwargs={
@@ -28,7 +28,7 @@ claude_llm = ChatBedrock(
 claude_chat_llm = ChatBedrock(
     # model_id=config.llm_model_id,
     # transitioning to claude 3 with messages API
-    model_id="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    model_id="us.anthropic.claude-3-5-haiku-20241022-v1:0",
     client=bedrock_runtime,
     model_kwargs={
         "max_tokens": 1000,
@@ -82,5 +82,3 @@ LLM_AGENT_TOOLS = [
         ),
     )
 ]
-
-LLM_AGENT_TOOLS = []
