@@ -209,8 +209,8 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// AgentDB.connections.allowDefaultPortFrom(agent_executor_lambda);
 		// ----
 		// Allow Lambda to read SSM parameters.
-		ssm_bedrock_region_parameter.grantRead(agent_executor_lambda);
-		ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
+		// ssm_bedrock_region_parameter.grantRead(agent_executor_lambda);
+		// ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
 
 		// Allow Lambda read/write access to the chat history DynamoDB table
 		// to be able to read and update it as conversations progress.
