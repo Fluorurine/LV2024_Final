@@ -189,7 +189,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 					}
 				),
 				description: "Lambda function with bedrock access created via CDK",
-				timeout: cdk.Duration.minutes(5),
+				timeout: cdk.Duration.minutes(3),
 				memorySize: 2048,
 				// vpc: vpc.vpc,
 				environment: {
@@ -206,11 +206,11 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		AgentDB.secret?.grantRead(agent_executor_lambda);
 
 		// Allow network access to/from Lambda
-		AgentDB.connections.allowDefaultPortFrom(agent_executor_lambda);
+		// AgentDB.connections.allowDefaultPortFrom(agent_executor_lambda);
 		// ----
 		// Allow Lambda to read SSM parameters.
-		ssm_bedrock_region_parameter.grantRead(agent_executor_lambda);
-		ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
+		// ssm_bedrock_region_parameter.grantRead(agent_executor_lambda);
+		// ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
 
 		// Allow Lambda read/write access to the chat history DynamoDB table
 		// to be able to read and update it as conversations progress.
