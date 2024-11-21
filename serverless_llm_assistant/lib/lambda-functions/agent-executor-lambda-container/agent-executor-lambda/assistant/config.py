@@ -15,14 +15,14 @@ SQL_TABLE_NAMES = ["extracted_entities"]
 
 @dataclass
 class AgenticAssistantConfig:
-    # bedrock_region: str = ssm.get_parameter(
-    #     Name=os.environ["BEDROCK_REGION_PARAMETER"]
-    # )["Parameter"]["Value"]
-    bedrock_region:str ="us-east-1"
-    # llm_model_id: str = ssm.get_parameter(Name=os.environ["LLM_MODEL_ID_PARAMETER"])[
-    #     "Parameter"
-    # ]["Value"]
-    llm_model_id:str ="us.anthropic.claude-3-5-haiku-20241022-v1:0"
+    bedrock_region: str = ssm.get_parameter(
+        Name=os.environ["BEDROCK_REGION_PARAMETER"]
+    )["Parameter"]["Value"]
+    # bedrock_region:str ="us-east-1"
+    llm_model_id: str = ssm.get_parameter(Name=os.environ["LLM_MODEL_ID_PARAMETER"])[
+        "Parameter"
+    ]["Value"]
+    # llm_model_id:str ="us.anthropic.claude-3-5-haiku-20241022-v1:0"
 
     chat_message_history_table_name: str = os.environ["CHAT_MESSAGE_HISTORY_TABLE"]
     agent_db_secret_id: str = os.environ.get("AGENT_DB_SECRET_ID", "NOSECRET")
