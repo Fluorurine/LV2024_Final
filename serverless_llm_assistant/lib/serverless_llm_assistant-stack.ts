@@ -116,6 +116,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 			vpcSubnets: {
 				subnetType: ec2.SubnetType.PUBLIC, // Place the database in the private subnets
 			},
+			publiclyAccessible: true, // Make the database publicly accessible
 			storageEncrypted: true, // Enable storage encryption
 			allocatedStorage: 20, // Allocate 20 GB of storage
 			removalPolicy: cdk.RemovalPolicy.DESTROY, // Destroy the database upon stack deletion (use RETAIN for production)
@@ -207,10 +208,13 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 
 		// Allow network access to/from Lambda
 		// AgentDB.connections.allowDefaultPortFrom(agent_executor_lambda);
+		AgentDB.connections.allowFromAnyIpv4(
+			ec2.Port.tcp(AgentDB.instanceEndpoint.port)
+		);
 		// ----
 		// Allow Lambda to read SSM parameters.
-		// ssm_bedrock_region_parameter.grantRead(agent_executor_lambda);
-		// ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
+		ssm_bedrock_region_parameter.grantRead(agent_executor_lambda);
+		ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
 
 		// Allow Lambda read/write access to the chat history DynamoDB table
 		// to be able to read and update it as conversations progress.
