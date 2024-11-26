@@ -37,7 +37,7 @@ claude_llm = ChatBedrock(
 claude_chat_llm = ChatBedrock(
     # model_id=config.llm_model_id,
     # transitioning to claude 3 with messages API
-    model_id="us.anthropic.claude-3-5-haiku-20241022-v1:0",
+    model_id="anthropic.claude-3-haiku-20240307-v1:0",
     client=bedrock_runtime,
     model_kwargs={
         "max_tokens": 1000,

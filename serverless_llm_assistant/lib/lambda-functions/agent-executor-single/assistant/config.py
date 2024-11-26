@@ -6,6 +6,7 @@ import boto3
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
 from langchain_community.utilities import SQLDatabase
+
 import sqlalchemy
 
 ssm = boto3.client("ssm")
@@ -43,11 +44,11 @@ class AgenticAssistantConfig:
             password=_db_secret["password"],
         )
 
-        collection_name: str = "agentic_assistant_vector_store"
+        collection_name: str = "agentic_assistant_vector_store_part_2"
         embedding_model_id: str = "amazon.titan-embed-text-v2:0"
 
         sqlalchemy_connection_url: str = sqlalchemy.URL.create(
-            "postgresql+psycopg2",
+            "postgresql+psycopg",
             username=_db_secret["username"],
             password=_db_secret["password"],
             host=_db_secret["host"],

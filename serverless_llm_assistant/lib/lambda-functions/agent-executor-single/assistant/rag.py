@@ -21,18 +21,18 @@ def get_rag_chain(config, llm, bedrock_runtime):
         collection_name=config.collection_name,
         connection_string=config.postgres_connection_string,
     )
-    system_prompt = (
-        "Use the given context to answer the question. "
-        "If you don't know the answer, say you don't know. "
-        "Context: {context}"
-    )
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", system_prompt),
-            ("human", "{input}"),
-        ]
-    )
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
+    # system_prompt = (
+    #     "Use the given context to answer the question. "
+    #     "If you don't know the answer, say you don't know. "
+    #     "Context: {context}"
+    # )
+    # prompt = ChatPromptTemplate.from_messages(
+    #     [
+    #         ("system", system_prompt),
+    #         ("human", "{input}"),
+    #     ]
+    # )
+    # # question_answer_chain = create_stuff_documents_chain(llm, prompt)
     
 
     # return RetrievalQA.from_chain_type(
@@ -42,4 +42,4 @@ def get_rag_chain(config, llm, bedrock_runtime):
     #     return_source_documents=False,
     #     input_key="question",
     # )
-    return create_retrieval_chain(vector_store.as_retriever(), question_answer_chain)
+    return vector_store.as_retriever(search_kwargs={"k": 1})

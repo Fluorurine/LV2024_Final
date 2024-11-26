@@ -203,7 +203,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		const pythonLayer = lambda.LayerVersion.fromLayerVersionArn(
 			this,
 			"MyPythonLayer",
-			"arn:aws:lambda:us-east-1:381491977872:layer:agent-lambda-layer:1"
+			"arn:aws:lambda:us-east-1:381491977872:layer:agent-layer:1"
 		);
 		const agent_executor_lambda = new lambda.Function(
 			this,
