@@ -13,9 +13,9 @@ import { NetworkMode } from "aws-cdk-lib/aws-ecr-assets";
 import { Vpc } from "./assistant-vpc";
 import { AssistantApiConstruct } from "./assistant-api-gateway";
 import { CognitoConstruct } from "./assistant-authorizer";
-import { SageMakerRdsAccessConstruct } from "./assistant-sagemaker-postgres-acess";
-import { SageMakerIAMPolicyConstruct } from "./assistant-sagemaker-iam-policy";
-import { SageMakerProcessor } from "./assistant-sagemaker-processor";
+// import { SageMakerRdsAccessConstruct } from "./assistant-sagemaker-postgres-acess";
+// import { SageMakerIAMPolicyConstruct } from "./assistant-sagemaker-iam-policy";
+// import { SageMakerProcessor } from "./assistant-sagemaker-processor";
 
 const AGENT_DB_NAME = "AgentSQLDBandVectorStore";
 
@@ -32,7 +32,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// Create relevant SSM parameters
 		const parameters = this.node.tryGetContext("parameters") || {
 			bedrock_region: "us-east-1",
-			llm_model_id: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+			llm_model_id: "anthropic.claude-3-haiku-20240307-v1:0",
 		};
 
 		const BEDROCK_REGION = parameters["bedrock_region"];
@@ -139,7 +139,6 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// 	}
 		// );
 
-		// -----------------------------------------------------------------------
 		// Add a DynamoDB table to store chat history per session id.
 
 		// When you see a need for it, consider configuring autoscaling to the table
@@ -175,24 +174,50 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// }
 
 		// Add AWS Lambda container and function to serve as the agent executor.
-		const agent_executor_lambda = new lambda.DockerImageFunction(
+		// const agent_executor_lambda = new lambda.DockerImageFunction(
+		// 	this,
+		// 	"LambdaAgentContainer",
+		// 	{
+		// 		code: lambda.DockerImageCode.fromImageAsset(
+		// 			path.join(
+		// 				__dirname,
+		// 				"lambda-functions/agent-executor-lambda-container"
+		// 			),
+		// 			{
+		// 				networkMode: currentNetworkMode,
+		// 				buildArgs: { "--platform": "linux/amd64" },
+		// 			}
+		// 		),
+		// 		description: "Lambda function with bedrock access created via CDK",
+		// 		timeout: cdk.Duration.minutes(3),
+		// 		memorySize: 2048,
+		// 		// vpc: vpc.vpc,
+		// 		environment: {
+		// 			BEDROCK_REGION_PARAMETER: ssm_bedrock_region_parameter.parameterName,
+		// 			LLM_MODEL_ID_PARAMETER: ssm_llm_model_id_parameter.parameterName,
+		// 			CHAT_MESSAGE_HISTORY_TABLE: ChatMessageHistoryTable.tableName,
+		// 			AGENT_DB_SECRET_ID: AgentDB.secret?.secretArn as string,
+		// 		},
+		// 	}
+		// );
+		const pythonLayer = lambda.LayerVersion.fromLayerVersionArn(
 			this,
-			"LambdaAgentContainer",
+			"MyPythonLayer",
+			"arn:aws:lambda:us-east-1:381491977872:layer:agent-lambda-layer:1"
+		);
+		const agent_executor_lambda = new lambda.Function(
+			this,
+			"LambdaAgentHandler",
 			{
-				code: lambda.DockerImageCode.fromImageAsset(
-					path.join(
-						__dirname,
-						"lambda-functions/agent-executor-lambda-container"
-					),
-					{
-						networkMode: currentNetworkMode,
-						buildArgs: { "--platform": "linux/amd64" },
-					}
-				),
-				description: "Lambda function with bedrock access created via CDK",
-				timeout: cdk.Duration.minutes(3),
-				memorySize: 2048,
-				// vpc: vpc.vpc,
+				runtime: lambda.Runtime.PYTHON_3_12, // Replace with the runtime for your code
+				code: lambda.Code.fromAsset(
+					path.join(__dirname, "lambda-functions", "agent-executor-single")
+				), // Replace with the path to your new function code
+				layers: [pythonLayer],
+				handler: "handler.lambda_handler", // The entry point of your function
+				description: "Lambda function with Bedrock access created via CDK",
+				timeout: cdk.Duration.minutes(2),
+				memorySize: 1024,
 				environment: {
 					BEDROCK_REGION_PARAMETER: ssm_bedrock_region_parameter.parameterName,
 					LLM_MODEL_ID_PARAMETER: ssm_llm_model_id_parameter.parameterName,
@@ -201,13 +226,13 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 				},
 			}
 		);
-
 		// Placeholder Step 2.4 - grant Lambda permission to access db credentials
 		// Allow Lambda to read the secret for Aurora DB connection.
 		AgentDB.secret?.grantRead(agent_executor_lambda);
 
 		// Allow network access to/from Lambda
 		// AgentDB.connections.allowDefaultPortFrom(agent_executor_lambda);
+		// This only use in Testing/ Dev
 		AgentDB.connections.allowFromAnyIpv4(
 			ec2.Port.tcp(AgentDB.instanceEndpoint.port)
 		);
@@ -215,7 +240,19 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// Allow Lambda to read SSM parameters.
 		ssm_bedrock_region_parameter.grantRead(agent_executor_lambda);
 		ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
-
+		// -----------------------------------------------------------------------
+		// Save the secret ARN for the database in an SSM parameter to simplify
+		const ssm_database_secret = new ssm.StringParameter(
+			this,
+			"ssmBedrockDatabaseSecret",
+			{
+				parameterName: "/AgenticLLMAssistantWorkshop/DBSecretARN",
+				// This is the default region.
+				// The user can update it in parameter store.
+				stringValue: AgentDB.secret?.secretArn as string,
+			}
+		);
+		ssm_database_secret.grantRead(agent_executor_lambda);
 		// Allow Lambda read/write access to the chat history DynamoDB table
 		// to be able to read and update it as conversations progress.
 		ChatMessageHistoryTable.grantReadWriteData(agent_executor_lambda);
@@ -257,6 +294,16 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 				stringValue: agent_data_bucket.bucketName,
 			}
 		);
+
+		// 	{
+		// 		"Sid": "PublicReadGetObject",
+		// 		"Effect": "Allow",
+		// 		"Principal": "*",
+		// 		"Action": "s3:GetObject",
+		// 		"Resource": "arn:aws:s3:::your-bucket-name/*"
+		// }
+		agentDataBucketParameter.grantRead(agent_executor_lambda);
+		agentDataBucketParameter.grantWrite(agent_executor_lambda);
 
 		// -----------------------------------------------------------------------
 		// Create a managed IAM policy to be attached to a SageMaker execution role
