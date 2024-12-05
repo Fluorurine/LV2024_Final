@@ -120,7 +120,7 @@ const ChatApp: React.FC = () => {
 						id="chat-message-input"
 						className="flex-1 p-2 border rounded-lg border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
 						type="text"
-						placeholder="Type your message..."
+						placeholder="Nhập thông điệp của bạn..."
 						onKeyDown={(e) => {
 							// send message on enter if not empty
 							if (e.key === "Enter") {

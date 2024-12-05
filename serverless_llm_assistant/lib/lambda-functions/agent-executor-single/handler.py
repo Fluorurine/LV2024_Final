@@ -7,7 +7,7 @@ from langchain.chains import ConversationChain
 from langchain_aws import ChatBedrock
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
-
+import json
 from assistant.config import AgenticAssistantConfig
 from assistant.prompts import CLAUDE_PROMPT
 from assistant.utils import parse_markdown_content
@@ -15,6 +15,9 @@ from assistant.utils import parse_markdown_content
 from langchain.agents import AgentExecutor, create_xml_agent
 from assistant.prompts import CLAUDE_AGENT_PROMPT
 from assistant.tools import LLM_AGENT_TOOLS
+from langchain_community.embeddings import BedrockEmbeddings
+from langchain_postgres import PGVector
+from langchain_postgres.vectorstores import PGVector
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -109,6 +112,25 @@ def get_agentic_chatbot_conversation_chain(
     )
     return agent_chain
 
+def get_rag_chain(user_input,k=5, verbose=False):
+    embedding_model = BedrockEmbeddings(
+        model_id=config.embedding_model_id, client=bedrock_runtime
+    )
+
+    vector_store = PGVector.from_existing_index(
+        embedding=embedding_model,
+        collection_name=config.collection_name,
+        connection=config.postgres_connection_string,
+    )
+    results= vector_store.similarity_search_with_score(user_input,k=k)
+    current_data = []
+    for doc, score in results:
+        data = {}
+        data["score"]= score
+        data["page_content"]=doc.page_content
+        data["metadata"]=doc.metadata
+        current_data.append(data)
+    return current_data
 def lambda_handler(event, context):
     logger.info(event)
     user_input = event["user_input"]
@@ -116,6 +138,8 @@ def lambda_handler(event, context):
     chatbot_type = event.get("chatbot_type", "basic")
     chatbot_types = ["basic", "agentic"]
     clean_history = event.get("clean_history", False)
+    # new
+    querry_k = event.get("querry_k", 5)
 
     if chatbot_type == "basic":
         conversation_chain = get_basic_chatbot_conversation_chain(
@@ -125,6 +149,13 @@ def lambda_handler(event, context):
         conversation_chain = get_agentic_chatbot_conversation_chain(
             user_input, session_id, clean_history
         ).invoke
+    elif chatbot_type=="rag":
+        a = 1+1
+        # conversation_chain = get_rag_chain(
+        #     user_input, k=querry_k
+        
+    elif chatbot_type=="cv":
+        a = 1+1
     else:
         return {
             "statusCode": 200,
@@ -135,13 +166,17 @@ def lambda_handler(event, context):
         }
 
     try:
-        response = conversation_chain({"input": user_input})
 
         if chatbot_type == "basic":
+            response = conversation_chain({"input": user_input})
             response = response["response"]
             response = parse_markdown_content(response)
         elif chatbot_type == "agentic":
+            response = conversation_chain({"input": user_input})
             response = response["output"]
+        elif chatbot_type == "rag":
+            # response = conversation_chain(user_input)
+            response = json.dumps(get_rag_chain(user_input,querry_k))
 
     except Exception:
         response = (

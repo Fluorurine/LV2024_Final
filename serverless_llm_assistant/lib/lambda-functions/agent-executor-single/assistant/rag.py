@@ -3,7 +3,8 @@
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.embeddings import BedrockEmbeddings
-from langchain_community.vectorstores import PGVector
+from langchain_postgres import PGVector
+from langchain_postgres.vectorstores import PGVector
 from langchain_core.prompts import ChatPromptTemplate
 
 def get_rag_chain(config, llm, bedrock_runtime):
@@ -19,7 +20,7 @@ def get_rag_chain(config, llm, bedrock_runtime):
     vector_store = PGVector.from_existing_index(
         embedding=embedding_model,
         collection_name=config.collection_name,
-        connection_string=config.postgres_connection_string,
+        connection=config.postgres_connection_string,
     )
     # system_prompt = (
     #     "Use the given context to answer the question. "
