@@ -10,14 +10,16 @@ from langchain_community.chat_message_histories import DynamoDBChatMessageHistor
 import json
 from assistant.config import AgenticAssistantConfig
 from assistant.prompts import CLAUDE_PROMPT
+from assistant.prompts import CLAUDE_AGENT_PROMPT
+from assistant.prompts import CV_PROMPT
 from assistant.utils import parse_markdown_content
 ## placeholder for lab 3, step 4.2, replace this with imports as instructed
 from langchain.agents import AgentExecutor, create_xml_agent
-from assistant.prompts import CLAUDE_AGENT_PROMPT
 from assistant.tools import LLM_AGENT_TOOLS
 from langchain_community.embeddings import BedrockEmbeddings
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
+from langchain_aws import ChatBedrockConverse
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -37,18 +39,24 @@ claude_llm = ChatBedrock(
     },
 )
 
-claude_chat_llm = ChatBedrock(
-    # model_id=config.llm_model_id,
-    # transitioning to claude 3 with messages API
-    model_id="anthropic.claude-3-haiku-20240307-v1:0",
+# claude_chat_llm = ChatBedrock(
+#     # model_id=config.llm_model_id,
+#     # transitioning to claude 3 with messages API
+#     model_id="anthropic.claude-3-haiku-20240307-v1:0",
+#     client=bedrock_runtime,
+#     model_kwargs={
+#         "max_tokens": 1000,
+#         "temperature": 0.0,
+#         "top_p": 0.99
+#     },
+# )
+claude_chat_llm = ChatBedrockConverse(
+    model="amazon.nova-lite-v1:0",
+    temperature=0.99,
     client=bedrock_runtime,
-    model_kwargs={
-        "max_tokens": 1000,
-        "temperature": 0.0,
-        "top_p": 0.99
-    },
-)
-
+    max_tokens=None,
+    # other params...
+    )
 
 def get_basic_chatbot_conversation_chain(
     user_input, session_id, clean_history, verbose=False
@@ -74,6 +82,16 @@ def get_basic_chatbot_conversation_chain(
     )
 
     return conversation_chain
+
+def get_basic_cv_conversation_chain():
+    cv_llm  = ChatBedrockConverse(
+    model="amazon.nova-lite-v1:0",
+    temperature=0.99,
+    client=bedrock_runtime,
+    max_tokens=None,
+    # other params...
+    )
+    return CV_PROMPT | cv_llm    
 
 
 ## placeholder for lab 3, step 4.3, replace this with the get_agentic_chatbot_conversation_chain helper.
@@ -108,6 +126,7 @@ def get_agentic_chatbot_conversation_chain(
         return_intermediate_steps=False,
         verbose=verbose,
         memory=memory,
+        max_iterations=6,
         handle_parsing_errors="Check your output and make sure it conforms!"
     )
     return agent_chain
@@ -138,6 +157,7 @@ def lambda_handler(event, context):
     chatbot_type = event.get("chatbot_type", "basic")
     chatbot_types = ["basic", "agentic"]
     clean_history = event.get("clean_history", False)
+
     # new
     querry_k = event.get("querry_k", 5)
 
@@ -154,8 +174,8 @@ def lambda_handler(event, context):
         # conversation_chain = get_rag_chain(
         #     user_input, k=querry_k
         
-    elif chatbot_type=="cv":
-        a = 1+1
+    elif chatbot_type=="chatcv":
+        conversation_chain = get_basic_cv_conversation_chain().invoke
     else:
         return {
             "statusCode": 200,
@@ -177,6 +197,17 @@ def lambda_handler(event, context):
         elif chatbot_type == "rag":
             # response = conversation_chain(user_input)
             response = json.dumps(get_rag_chain(user_input,querry_k))
+        elif chatbot_type == "chatcv":
+            page_content = event.get("page_content", "")
+            if not page_content:
+                return {
+                    "statusCode": 200,
+                    "response": (
+                        "Please provide the page content for the CV."
+                    ),
+                }
+            response = conversation_chain({"input": user_input, "content": page_content})
+            response = response.content
 
     except Exception:
         response = (

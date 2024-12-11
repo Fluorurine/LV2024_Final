@@ -89,3 +89,22 @@ messages2 = [
 ]
 
 CLAUDE_AGENT_PROMPT = ChatPromptTemplate.from_messages(messages2)
+
+
+sys_msg = """
+<rules>
+1. You must answer the <input> question based on the CV content in <content>.
+2. If the answer is not explicitly in the content, say that you don't know.
+3. Answer in markdown format.
+4. Try to be detail in your response.
+</rules>
+
+<input>
+{input}
+</input>
+<content>
+{content}
+</content>
+
+"""
+CV_PROMPT = ChatPromptTemplate.from_template(sys_msg)

@@ -6,7 +6,12 @@ from langchain_community.embeddings import BedrockEmbeddings
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
 from langchain_core.prompts import ChatPromptTemplate
-
+def format_docs(docs):
+    content = ""
+    for doc in docs:
+        content+= f"Below is document exceprt from file: {doc.metadata["file_name"]} --------- \n\n {doc.page_content} \n"
+    # return "\n\n".join(doc.page_content for doc in docs)
+    return content
 def get_rag_chain(config, llm, bedrock_runtime):
     """Prepare a RAG question answering chain.
 
@@ -19,7 +24,7 @@ def get_rag_chain(config, llm, bedrock_runtime):
 
     vector_store = PGVector.from_existing_index(
         embedding=embedding_model,
-        collection_name=config.collection_name,
+        collection_name="agentic_assistant_lv_160",
         connection=config.postgres_connection_string,
     )
     # system_prompt = (
@@ -43,4 +48,4 @@ def get_rag_chain(config, llm, bedrock_runtime):
     #     return_source_documents=False,
     #     input_key="question",
     # )
-    return vector_store.as_retriever(search_kwargs={"k": 1})
+    return vector_store.as_retriever(search_kwargs={"k": 4})| format_docs

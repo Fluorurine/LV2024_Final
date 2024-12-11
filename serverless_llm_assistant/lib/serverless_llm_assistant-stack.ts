@@ -233,9 +233,26 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 			), // Replace with the path to your new function code
 			layers: [pythonLayer],
 			handler: "handler.lambda_handler", // The entry point of your function
-			description: "Lambda function with Bedrock access created via CDK",
+			description: "Lambda function for update data",
 			timeout: cdk.Duration.minutes(2),
-			memorySize: 1024,
+			memorySize: 512,
+			environment: {
+				BEDROCK_REGION_PARAMETER: ssm_bedrock_region_parameter.parameterName,
+				LLM_MODEL_ID_PARAMETER: ssm_llm_model_id_parameter.parameterName,
+				CHAT_MESSAGE_HISTORY_TABLE: ChatMessageHistoryTable.tableName,
+				AGENT_DB_SECRET_ID: AgentDB.secret?.secretArn as string,
+			},
+		});
+		const agent_executor_get = new lambda.Function(this, "LambdaAgentGetAPI", {
+			runtime: lambda.Runtime.PYTHON_3_12, // Replace with the runtime for your code
+			code: lambda.Code.fromAsset(
+				path.join(__dirname, "lambda-functions", "agent-executor-get")
+			), // Replace with the path to your new function code
+			layers: [pythonLayer],
+			handler: "handler.lambda_handler", // The entry point of your function
+			description: "Lambda function for get data from database API",
+			timeout: cdk.Duration.minutes(2),
+			memorySize: 512,
 			environment: {
 				BEDROCK_REGION_PARAMETER: ssm_bedrock_region_parameter.parameterName,
 				LLM_MODEL_ID_PARAMETER: ssm_llm_model_id_parameter.parameterName,
@@ -247,6 +264,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		// Allow Lambda to read the secret for Aurora DB connection.
 		AgentDB.secret?.grantRead(agent_executor_lambda);
 		AgentDB.secret?.grantRead(agent_api_lambda);
+		AgentDB.secret?.grantRead(agent_executor_get);
 
 		// Allow network access to/from Lambda
 		// AgentDB.connections.allowDefaultPortFrom(agent_executor_lambda);
@@ -260,6 +278,8 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		ssm_llm_model_id_parameter.grantRead(agent_executor_lambda);
 		ssm_bedrock_region_parameter.grantRead(agent_api_lambda);
 		ssm_llm_model_id_parameter.grantRead(agent_api_lambda);
+		ssm_bedrock_region_parameter.grantRead(agent_executor_get);
+		ssm_llm_model_id_parameter.grantRead(agent_executor_get);
 		// -----------------------------------------------------------------------
 		// Save the secret ARN for the database in an SSM parameter to simplify
 		const ssm_database_secret = new ssm.StringParameter(
@@ -274,16 +294,21 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		);
 		ssm_database_secret.grantRead(agent_executor_lambda);
 		ssm_database_secret.grantRead(agent_api_lambda);
+		ssm_database_secret.grantRead(agent_executor_get);
 		// Allow Lambda read/write access to the chat history DynamoDB table
 		// to be able to read and update it as conversations progress.
 		ChatMessageHistoryTable.grantReadWriteData(agent_executor_lambda);
 		ChatMessageHistoryTable.grantReadWriteData(agent_api_lambda);
+		ChatMessageHistoryTable.grantReadWriteData(agent_executor_get);
 
 		// Allow the Lambda function to use Bedrock
 		agent_executor_lambda.role?.addManagedPolicy(
 			iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonBedrockFullAccess")
 		);
 		agent_api_lambda.role?.addManagedPolicy(
+			iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonBedrockFullAccess")
+		);
+		agent_executor_get.role?.addManagedPolicy(
 			iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonBedrockFullAccess")
 		);
 
@@ -331,6 +356,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 		agentDataBucketParameter.grantWrite(agent_executor_lambda);
 		agentDataBucketParameter.grantRead(agent_api_lambda);
 		agent_data_bucket.grantReadWrite(agent_api_lambda);
+		agentDataBucketParameter.grantRead(agent_executor_get);
 
 		// -----------------------------------------------------------------------
 		// Create a managed IAM policy to be attached to a SageMaker execution role
@@ -356,6 +382,7 @@ export class ServerlessLlmAssistantStack extends cdk.Stack {
 			cognitoUserPool: cognito_authorizer.userPool,
 			lambdaFunction: agent_executor_lambda,
 			apiFunction: agent_api_lambda,
+			getFunction: agent_executor_get,
 		});
 
 		// new SageMakerProcessor(this, "SagemakerProcessor");

@@ -9,6 +9,7 @@ interface AssistantApiConstructProps {
 	cognitoUserPool: cognito.UserPool;
 	lambdaFunction: lambda.Function;
 	apiFunction: lambda.Function;
+	getFunction: lambda.Function;
 }
 
 export class AssistantApiConstruct extends Construct {
@@ -74,7 +75,25 @@ export class AssistantApiConstruct extends Construct {
 				],
 			}
 		);
-
+		const getLambdaIntegration = new apigateway.LambdaIntegration(
+			props.getFunction,
+			{
+				proxy: false,
+				integrationResponses: [
+					{
+						statusCode: "200",
+						responseParameters: {
+							"method.response.header.Access-Control-Allow-Headers":
+								"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+							"method.response.header.Access-Control-Allow-Origin": "'*'",
+							"method.response.header.Access-Control-Allow-Methods":
+								"'POST,OPTIONS'",
+						},
+					},
+				],
+			}
+		);
+		// Add a new / resource with a POST method
 		this.api.root.addMethod("POST", lambdaIntegration, {
 			methodResponses: [
 				{
@@ -93,6 +112,22 @@ export class AssistantApiConstruct extends Construct {
 		const apiResource = this.api.root.addResource("api");
 
 		apiResource.addMethod("POST", apiLambdaIntegration, {
+			methodResponses: [
+				{
+					statusCode: "200",
+					responseParameters: {
+						"method.response.header.Access-Control-Allow-Headers": true,
+						"method.response.header.Access-Control-Allow-Origin": true,
+						"method.response.header.Access-Control-Allow-Methods": true,
+					},
+				},
+			],
+			authorizer: cognitoAuthorizer,
+			authorizationType: apigateway.AuthorizationType.COGNITO,
+		});
+		// Add a new /get resource with a POST method
+		const getApiResource = this.api.root.addResource("get");
+		getApiResource.addMethod("POST", getLambdaIntegration, {
 			methodResponses: [
 				{
 					statusCode: "200",

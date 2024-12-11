@@ -3,6 +3,7 @@ import boto3
 from langchain.agents import Tool
 # from langchain_aws import BedrockLLM
 from langchain_aws import ChatBedrock
+from langchain_aws import ChatBedrockConverse
 
 from langchain_community.tools import DuckDuckGoSearchRun
 # from .calculator import CustomCalculatorTool
@@ -13,32 +14,39 @@ from .sqlqa import get_sql_qa_tool, get_sql_chain
 config = AgenticAssistantConfig()
 bedrock_runtime = boto3.client("bedrock-runtime", region_name=config.bedrock_region)
 
-claude_llm = ChatBedrock(
-    # model_id=config.llm_model_id,
-    model_id="anthropic.claude-3-haiku-20240307-v1:0",
+# claude_llm = ChatBedrock(
+#     # model_id=config.llm_model_id,
+#     model_id="anthropic.claude-3-haiku-20240307-v1:0",
 
-    client=bedrock_runtime,
-    model_kwargs={
-        "max_tokens": 1000,
-        "temperature": 0.0,
-        "top_p": 0.99
-    },
-)
+#     client=bedrock_runtime,
+#     model_kwargs={
+#         "max_tokens": 1000,
+#         "temperature": 0.0,
+#         "top_p": 0.99
+#     },
+# )
 
-claude_chat_llm = ChatBedrock(
-    model_id=config.llm_model_id,
-    # transitianthropic.claude-3-haiku-20240307-v1:0",
+# claude_chat_llm = ChatBedrock(
+#     model_id=config.llm_model_id,
+#     # transitianthropic.claude-3-haiku-20240307-v1:0",
+#     client=bedrock_runtime,
+#     model_kwargs={
+#         "max_tokens": 1000,
+#         "temperature": 0.0,
+#         "top_p": 0.99
+#     },
+# )
+claude_chat_llm = ChatBedrockConverse(
+    model="amazon.nova-lite-v1:0",
+    temperature=0.99,
     client=bedrock_runtime,
-    model_kwargs={
-        "max_tokens": 1000,
-        "temperature": 0.0,
-        "top_p": 0.99
-    },
-)
+    max_tokens=None,
+    # other params...
+    )
 
 search = DuckDuckGoSearchRun()
 # custom_calculator = CustomCalculatorTool()
-rag_qa_chain = get_rag_chain(config, claude_llm, bedrock_runtime)
+rag_qa_chain = get_rag_chain(config, claude_chat_llm, bedrock_runtime)
 sql_chain = get_sql_chain(claude_chat_llm)
 #    Tool(
 #         name="Calculator",
@@ -64,8 +72,8 @@ LLM_AGENT_TOOLS = [
         # func=lambda query: rag_qa_chain.invoke({"input": query}),
         func= rag_qa_chain.invoke,
         description=(
-            "Use this tool when you need infomation about CV in local CV vector database. "
-            "For example, you can use this tool for Candiate projects mention in CV, University that candidate attend to, who have which project."
+            "Use this tool to return file name when you need infomation about candidate in local vector database. The tool will return document file name with their excerpt."
+            "For example, you can use this tool for which candiate projects mention in CV, university that candidate attend to, who have which project."
         ),
         handle_tool_error="RAG ErrorSorry, I couldn't find any relevant information on that RAG. Please try asking a different question.",
     ), 
